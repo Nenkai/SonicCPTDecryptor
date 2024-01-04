@@ -419,7 +419,7 @@ namespace Simias.Encryption
                 // Relevant blowfish functions on US PS2: anything used by 0x1031F0
                 xl = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(i));
                 xr = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(i + 4));
-                FUN_001e7040(ref xl, ref xr);
+                custom_decrypt_block_001e7040(ref xl, ref xr);
 
                 // Now Replace the data.
                 data[i] = (byte)(xl >> 0);
@@ -430,31 +430,39 @@ namespace Simias.Encryption
                 data[i + 5] = (byte)(xr >> 8);
                 data[i + 6] = (byte)(xr >> 16);
                 data[i + 7] = (byte)(xr >> 24);
+
+                /* Previous:
+                xl = (uint)((data[i] << 24) | (data[i + 1] << 16) | (data[i + 2] << 8) | data[i + 3]);
+                xr = (uint)((data[i + 4] << 24) | (data[i + 5] << 16) | (data[i + 6] << 8) | data[i + 7]);
+                Decipher(ref xl, ref xr);
+                // Now Replace the data.
+                data[i] = (byte)(xl >> 24);
+                data[i + 1] = (byte)(xl >> 16);
+                data[i + 2] = (byte)(xl >> 8);
+                data[i + 3] = (byte)(xl);
+                data[i + 4] = (byte)(xr >> 24);
+                data[i + 5] = (byte)(xr >> 16);
+                data[i + 6] = (byte)(xr >> 8);
+                data[i + 7] = (byte)(xr);
+                */
             }
         }
 
-        
-        void FUN_001e7040(ref uint val1, ref uint val2)
-
+        /// <summary>
+        /// Decrypts one block (8 bytes) a different way, used by Sonic Mega Collection Plus
+        /// </summary>
+        /// <param name="dword1"></param>
+        /// <param name="dword2"></param>
+        void custom_decrypt_block_001e7040(ref uint dword1, ref uint dword2)
         {
-            uint uVar1;
-            uint uVar2;
-            uint iVar3;
-            uint uVar4;
-            uint uVar5;
-            uint uVar7;
-            uint uVar8;
+            uint v2 = dword1 ^ P[5];
+            uint v1 = dword2 ^ ((S[0, (v2 >> 24)] + S[1, (v2 >> 16) & 0xFF] ^ S[2, (v2 >> 8) & 0xFF]) + S[3, (v2 & 0xff)] ^ P[4]);
+            v2 ^= ((S[0, (v1 >> 24)] + S[1, (v1 >> 16) & 0xFF] ^ S[2, (v1 >> 8) & 0xFF]) + S[3, (v1 & 0xff)] ^ P[3]);
+            v1 ^= ((S[0, (v2 >> 24)] + S[1, (v2 >> 16) & 0xFF] ^ S[2, (v2 >> 8) & 0xFF]) + S[3, (v2 & 0xff)] ^ P[2]);
+            v2 ^= ((S[0, (v1 >> 24)] + S[1, (v1 >> 16) & 0xFF] ^ S[2, (v1 >> 8) & 0xFF]) + S[3, (v1 & 0xff)] ^ P[1]);
 
-            uVar8 = val1 ^ P[5];
-            uVar7 = val2 ^  ((S[0, (uVar8 >> 0x18)] +  S[1, (uVar8 >> 16) & 0xFF] ^ S[2, (uVar8 >> 8) & 0xFF]) + S[3, (uVar8 & 0xff)] ^ P[4]);
-            uVar8 = uVar8 ^ ((S[0, (uVar7 >> 0x18)] + S[1, (uVar7 >> 16) & 0xFF] ^ S[2, (uVar7 >> 8) & 0xFF]) + S[3, (uVar7 & 0xff)] ^ P[3]);
-            uVar7 = uVar7 ^ ((S[0, (uVar8 >> 0x18)] + S[1, (uVar8 >> 16) & 0xFF] ^ S[2, (uVar8 >> 8) & 0xFF]) + S[3, (uVar8 & 0xff)] ^ P[2]);
-            uVar2 = S[0, (uVar7 >> 24) & 0xFF];
-            iVar3 = S[1, (uVar7 >> 16) & 0xFF];
-            uVar4 = S[2, (uVar7 >> 8) & 0xFF];
-            uVar5 = S[3, (uVar7 & 0xff)];
-            val1 = uVar7 ^ P[0];
-            val2 = uVar8 ^ (uVar2 + iVar3 ^ uVar4) + uVar5 ^ P[1];
+            dword1 = v1 ^ P[0];
+            dword2 = v2;
             return;
         }
 
