@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Test": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Users\\nenkai\\Desktop\\est\\MDROM_EU\\COMIX.CPT\" fuck/comix.dec"
+    }
+  }
+}
