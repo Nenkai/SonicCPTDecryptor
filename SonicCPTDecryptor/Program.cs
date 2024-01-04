@@ -31,8 +31,11 @@ namespace SonicCPTDecryptor
                 // May not actually match md5, it's weird
                 // Not using for now
                 Span<byte> md5 = file.AsSpan(0x00, 0x10);
+                byte[] bfKey = file.AsSpan(0x10, 0x10).ToArray();
+                // No evidence that the next 0x20 bytes are even used, garbage bytes?
 
-                var blow = new Blowfish(file.AsSpan(0x10, 0x10).ToArray());
+                // Decrypt. Hashing also starts from here
+                var blow = new Blowfish(bfKey);
                 blow.Decipher(file.AsSpan(0x40), (int)((file.Length - 0x40) & 0xFFFFFFF8));
 
                 // Love it when libs don't expose a span interface :(
